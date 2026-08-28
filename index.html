@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy 14th Birthday, Modo!</title>
+    <title>Happy 14th Birthday, Mahmoud!</title>
+    
+    <!-- Firebase Libraries (using v8 for simple static HTML integration) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         /* === BASE & SCROLL STYLES === */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
@@ -78,7 +83,7 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             display: flex; align-items: center; justify-content: center;
             backface-visibility: hidden;
-            cursor: pointer; /* Indicates it can be clicked */
+            cursor: pointer; 
             transition: transform 0.3s, box-shadow 0.3s;
         }
         .portrait:hover { box-shadow: 0 20px 60px rgba(242, 215, 78, 0.4); }
@@ -110,46 +115,43 @@
         
         .user-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 20px; }
         
-        /* Fixed Gallery Cards - No cutoffs */
         .user-photo-card { 
             height: 150px; 
             border-radius: 10px; 
             overflow: hidden; 
             border: 2px solid rgba(255,255,255,0.2); 
-            background: #111; /* Dark background masks empty space */
+            background: #111; 
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
             transition: transform 0.2s, border-color 0.2s;
         }
         .user-photo-card:hover { transform: scale(1.05); border-color: #f2d74e; }
-        .user-photo-card img { width: 100%; height: 100%; object-fit: contain; /* FIX: Prevents cropping */ }
+        .user-photo-card img { width: 100%; height: 100%; object-fit: contain; }
 
         .messages-container { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; text-align: left; }
         .message-card { background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; border-left: 5px solid #f2d74e; }
         .message-card h4 { color: #f2d74e; margin-bottom: 5px; font-size: 1.2rem; }
 
-        /* === OVERLAYS (PORTRAIT ZOOM & GALLERY LIGHTBOX) === */
+        /* === OVERLAYS === */
         .fullscreen-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
             z-index: 10000; opacity: 0; pointer-events: none;
             transition: opacity 0.4s ease;
             display: flex; align-items: center; justify-content: center;
-            perspective: 1000px; /* Needed for 3D mouse parallax */
+            perspective: 1000px; 
         }
         .fullscreen-overlay.active { opacity: 1; pointer-events: auto; }
 
-        /* Portrait Parallax Image */
         #portraitZoomImg {
             max-width: 90vw; max-height: 90vh;
             border: 15px solid #d4af37; border-radius: 5px;
             box-shadow: 0 40px 100px rgba(0,0,0,0.9);
-            transition: transform 0.1s ease-out; /* Smooth mouse tracking */
+            transition: transform 0.1s ease-out; 
             will-change: transform;
             object-fit: contain;
         }
 
-        /* Gallery Lightbox Elements */
         #lbImg { max-width: 85vw; max-height: 85vh; border-radius: 10px; box-shadow: 0 10px 50px rgba(0,0,0,0.8); object-fit: contain; }
         .lb-btn {
             position: absolute; top: 50%; transform: translateY(-50%);
@@ -166,7 +168,6 @@
         }
         #lbClose:hover, #ptClose:hover { color: #ff5555; transform: scale(1.1); }
 
-        /* Mobile Adjustments */
         @media (max-width: 768px) {
             h1 { font-size: 2.2rem; }
             .p1, .p3 { transform: translate3d(0, -30px, -200px); }
@@ -182,13 +183,11 @@
 
     <canvas id="confettiCanvas"></canvas>
 
-    <!-- Portrait Zoom Overlay -->
     <div class="fullscreen-overlay" id="portraitOverlay">
         <button id="ptClose">✖</button>
         <img id="portraitZoomImg" src="" alt="Zoomed Portrait">
     </div>
 
-    <!-- Gallery Lightbox Overlay -->
     <div class="fullscreen-overlay" id="galleryLightbox">
         <button id="lbClose">✖</button>
         <button class="lb-btn" id="lbPrev">❮</button>
@@ -199,11 +198,10 @@
     <div class="header-container">
         <header class="glass-panel">
             <h1>Happy 14th Birthday, Mahmoud!</h1>
-            <p class="subtitle">I hope that all your dreams come true.</p>
+            <p class="subtitle">I hope all your dreams come true.</p>
         </header>
     </div>
 
-    <!-- 3D SCROLL GALLERY -->
     <div class="scroll-gallery-wrapper" id="galleryWrapper">
         <div class="camera">
             <div class="scene" id="scene">
@@ -213,18 +211,16 @@
                 <div class="decoration table-3">🎁🥳</div>
                 <div class="decoration table-4">🍕🎉</div>
 
-                <!-- Replace the src with your actual image files -->
                 <div class="portrait p1"><img src="portrait1.jpeg" alt="Memory 1"></div>
                 <div class="portrait p2"><img src="portrait2.jpeg" alt="Memory 2"></div>
                 <div class="portrait p3"><img src="portrait3.jpeg" alt="Memory 3"></div>
-                <div class="portrait p4"><img src="portrait4.jpeg" alt="Memory 4"></div>
-                <div class="portrait p5"><img src="portrait5.jpeg" alt="Grand Finale"></div>
+                <div class="portrait p4"><img src="portrait4.jpg" alt="Memory 4"></div>
+                <div class="portrait p5"><img src="portrait5.jpg" alt="Grand Finale"></div>
             </div>
             <div class="scroll-indicator">Keep Scrolling ↓</div>
         </div>
     </div>
 
-    <!-- GUESTBOOK AND PHOTO UPLOAD -->
     <div class="interactive-container">
         <section class="glass-panel">
             <h2 style="color: #f2d74e; margin-bottom: 15px;">Party Photo Gallery</h2>
@@ -236,7 +232,7 @@
             </label>
 
             <div class="user-gallery-grid" id="userGallery">
-                <!-- Uploaded photos appear here -->
+                <!-- Uploaded photos appear here via Firebase -->
             </div>
         </section>
 
@@ -247,11 +243,30 @@
                 <textarea id="messageInput" rows="3" placeholder="Write your birthday message here..." required></textarea>
                 <button class="btn" id="submitBtn">Post Message</button>
             </div>
-            <div class="messages-container" id="messagesList"></div>
+            <div class="messages-container" id="messagesList">
+                <!-- Messages appear here via Firebase -->
+            </div>
         </section>
     </div>
 
     <script>
+        // ==========================================
+        // FIREBASE SETUP (ADD YOUR KEYS HERE)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdrSntMuNvDlj1qWjC7tZgdNZaKkcnc9o",
+            authDomain: "modo-5d7aa.firebaseapp.com",
+            projectId: "modo-5d7aa",
+            storageBucket: "modo-5d7aa.firebasestorage.app",
+            messagingSenderId: "530383018645",
+            appId: "1:530383018645:web:3f35f8360d2f052fe4d99c",
+            measurementId: "G-N2S4CGWZ9Q"
+          };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         // === 1. CONFETTI ===
         const canvas = document.getElementById('confettiCanvas');
         const ctx = canvas.getContext('2d');
@@ -320,22 +335,19 @@
             img.parentElement.addEventListener('click', () => {
                 portraitZoomImg.src = img.src;
                 portraitOverlay.classList.add('active');
-                portraitZoomImg.style.transform = `rotateY(0deg) rotateX(0deg) scale(1)`; // reset transform
+                portraitZoomImg.style.transform = `rotateY(0deg) rotateX(0deg) scale(1)`;
                 isPortraitZoomed = true;
-                initialScrollY = window.scrollY; // Track scroll to exit
+                initialScrollY = window.scrollY;
             });
         });
 
-        // 3D Parallax effect on mouse move
         document.addEventListener('mousemove', (e) => {
             if (!isPortraitZoomed) return;
-            // Calculate how far the mouse is from the center of the screen
             const x = (window.innerWidth / 2 - e.pageX) / 30;
             const y = (window.innerHeight / 2 - e.pageY) / 30;
             portraitZoomImg.style.transform = `rotateY(${x}deg) rotateX(${y}deg) scale(1.05)`;
         });
 
-        // Close on scroll (must scroll more than 20px to prevent accidental mobile touches)
         window.addEventListener('scroll', () => {
             if (isPortraitZoomed && Math.abs(window.scrollY - initialScrollY) > 20) {
                 closePortraitZoom();
@@ -349,7 +361,7 @@
         ptClose.addEventListener('click', closePortraitZoom);
         portraitOverlay.addEventListener('click', (e) => { if (e.target === portraitOverlay) closePortraitZoom(); });
 
-        // === 4. GALLERY UPLOAD & LIGHTBOX ===
+        // === 4. GALLERY UPLOAD & LIGHTBOX (FIREBASE SYNCED) ===
         const photoUpload = document.getElementById('photoUpload');
         const userGallery = document.getElementById('userGallery');
         const galleryLightbox = document.getElementById('galleryLightbox');
@@ -357,8 +369,7 @@
         let currentGalleryIndex = 0;
         let currentGalleryImages = [];
 
-        document.addEventListener('DOMContentLoaded', loadUserPhotos);
-
+        // Upload to Firebase
         photoUpload.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -369,18 +380,25 @@
                 img.onload = function() {
                     const compCanvas = document.createElement('canvas');
                     const compCtx = compCanvas.getContext('2d');
-                    const MAX_WIDTH = 500; // Increased slightly for better lightbox quality
+                    const MAX_WIDTH = 500; 
                     const scaleSize = MAX_WIDTH / img.width;
                     compCanvas.width = MAX_WIDTH; compCanvas.height = img.height * scaleSize;
                     compCtx.drawImage(img, 0, 0, compCanvas.width, compCanvas.height);
                     
                     const compressedDataUrl = compCanvas.toDataURL('image/jpeg', 0.8);
-                    saveUserPhoto(compressedDataUrl);
-                    displayUserPhoto(compressedDataUrl);
+                    
+                    // Push to Firebase instead of LocalStorage
+                    db.ref('photos').push({ url: compressedDataUrl });
                 }
                 img.src = event.target.result;
             }
             reader.readAsDataURL(file);
+        });
+
+        // Listen for new photos from ANY user
+        db.ref('photos').on('child_added', (snapshot) => {
+            const data = snapshot.val();
+            displayUserPhoto(data.url);
         });
 
         function displayUserPhoto(dataUrl) {
@@ -388,7 +406,6 @@
             card.classList.add('user-photo-card');
             card.innerHTML = `<img src="${dataUrl}" alt="User uploaded photo">`;
             
-            // Open lightbox on click
             card.addEventListener('click', () => {
                 const nodes = Array.from(userGallery.children);
                 const index = nodes.indexOf(card);
@@ -399,7 +416,6 @@
         }
 
         function openLightbox(index) {
-            // Get all current photos in the grid dynamically
             currentGalleryImages = Array.from(document.querySelectorAll('.user-photo-card img')).map(img => img.src);
             if (currentGalleryImages.length === 0) return;
             currentGalleryIndex = index;
@@ -407,9 +423,8 @@
             galleryLightbox.classList.add('active');
         }
 
-        // Lightbox Navigation
         document.getElementById('lbPrev').addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevents clicking the background overlay
+            e.stopPropagation();
             currentGalleryIndex = (currentGalleryIndex - 1 + currentGalleryImages.length) % currentGalleryImages.length;
             lbImg.src = currentGalleryImages[currentGalleryIndex];
         });
@@ -423,38 +438,27 @@
         document.getElementById('lbClose').addEventListener('click', () => galleryLightbox.classList.remove('active'));
         galleryLightbox.addEventListener('click', (e) => { if (e.target === galleryLightbox) galleryLightbox.classList.remove('active'); });
 
-        function saveUserPhoto(dataUrl) {
-            try {
-                let photos = JSON.parse(localStorage.getItem('mahmoudPhotos')) || [];
-                photos.push(dataUrl);
-                localStorage.setItem('mahmoudPhotos', JSON.stringify(photos));
-            } catch (e) { alert("Gallery storage is full! Browser memory limit reached."); }
-        }
-        function loadUserPhotos() {
-            let photos = JSON.parse(localStorage.getItem('mahmoudPhotos')) || [];
-            photos.forEach(displayUserPhoto);
-        }
-
-        // === 5. GUESTBOOK MESSAGES ===
+        // === 5. GUESTBOOK MESSAGES (FIREBASE SYNCED) ===
         const submitBtn = document.getElementById('submitBtn');
         const nameInput = document.getElementById('nameInput');
         const messageInput = document.getElementById('messageInput');
         const messagesList = document.getElementById('messagesList');
-
-        document.addEventListener('DOMContentLoaded', loadMessages);
 
         submitBtn.addEventListener('click', function() {
             const name = nameInput.value.trim();
             const message = messageInput.value.trim();
             if (name === '' || message === '') return alert('Please fill out both fields!');
 
-            const msgObj = { name: name, text: message };
-            let msgs = JSON.parse(localStorage.getItem('mahmoudMsgs')) || [];
-            msgs.push(msgObj);
-            localStorage.setItem('mahmoudMsgs', JSON.stringify(msgs));
+            // Push to Firebase
+            db.ref('messages').push({ name: name, text: message });
             
-            displayMessage(msgObj);
             nameInput.value = ''; messageInput.value = '';
+        });
+
+        // Listen for new messages from ANY user
+        db.ref('messages').on('child_added', (snapshot) => {
+            const msg = snapshot.val();
+            displayMessage(msg);
         });
 
         function displayMessage(msg) {
@@ -462,10 +466,6 @@
             card.classList.add('message-card');
             card.innerHTML = `<h4>${msg.name}</h4><p>${msg.text}</p>`;
             messagesList.prepend(card);
-        }
-        function loadMessages() {
-            let msgs = JSON.parse(localStorage.getItem('mahmoudMsgs')) || [];
-            msgs.forEach(displayMessage);
         }
     </script>
 </body>
