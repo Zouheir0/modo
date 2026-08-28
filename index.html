@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Happy 14th Birthday, Mahmoud!</title>
     
-    <!-- Firebase Libraries (using v8 for simple static HTML integration) -->
+    <!-- Firebase Libraries -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -35,7 +35,7 @@
         h1 { font-size: 3.5rem; margin-bottom: 10px; color: #f2d74e; text-shadow: 0 0 20px rgba(242, 215, 78, 0.5); }
         p.subtitle { font-size: 1.2rem; color: #e0e0e0; }
         
-        /* === 3D SCROLL GALLERY === */
+        /* === 3D SCROLL GALLERY (DESKTOP) === */
         .scroll-gallery-wrapper { height: 600vh; position: relative; } 
         
         .camera { 
@@ -168,14 +168,42 @@
         }
         #lbClose:hover, #ptClose:hover { color: #ff5555; transform: scale(1.1); }
 
+        /* ========================================================
+           MOBILE RESPONSIVENESS FIXES (THE MAGIC HAPPENS HERE)
+           ======================================================== */
         @media (max-width: 768px) {
             h1 { font-size: 2.2rem; }
-            .p1, .p3 { transform: translate3d(0, -30px, -200px); }
-            .p2, .p4 { transform: translate3d(0, -30px, -1500px); }
-            .portrait { width: 280px; height: 380px; margin-left: -140px; margin-top: -190px; }
-            .p5 { transform: translate3d(0, -30px, -6000px); width: 300px; height: 400px; margin-left: -150px; margin-top: -200px; }
-            .upload-area { padding: 20px; } .upload-area h3 { font-size: 1.1rem; text-align: center; }
+            
+            /* 1. Turn off 3D camera for mobile to fix the "white space" and missing items */
+            .scroll-gallery-wrapper { height: auto !important; padding: 20px 0; margin-bottom: 20px; }
+            .camera { position: static; height: auto; width: 100%; perspective: none; }
+            .scene { position: static; height: auto; transform: none !important; display: flex; flex-direction: column; align-items: center; gap: 40px; padding-top: 20px; }
+            
+            /* 2. Hide 3D floor and convert floating decorations into standard elements */
+            .floor, .decoration { display: none; }
+            
+            /* 3. Stack portraits normally in a clean vertical line */
+            .portrait {
+                position: relative; top: 0; left: 0; margin: 0;
+                width: 85vw; height: 110vw; max-width: 320px; max-height: 420px;
+                transform: none !important; /* Forces it to ignore the desktop 3D positioning */
+            }
+            .p5 {
+                width: 90vw; height: 120vw; max-width: 360px; max-height: 480px;
+                border-color: #fff; box-shadow: 0 0 30px rgba(255,255,255,0.4);
+            }
+
+            .scroll-indicator { display: none; } /* Not needed for a standard vertical scroll */
+            
+            /* Interactive fixes */
+            .interactive-container { margin-top: 20px; padding: 10px; }
+            .upload-area { padding: 20px; } 
+            .upload-area h3 { font-size: 1rem; text-align: center; }
             .lb-btn { width: 45px; height: 45px; font-size: 1.5rem; }
+            
+            /* Mobile specific fullscreen fixes */
+            #portraitZoomImg, #lbImg { max-width: 95vw; max-height: 80vh; }
+            #lbClose, #ptClose { top: 10px; right: 15px; }
         }
     </style>
 </head>
@@ -251,7 +279,7 @@
 
     <script>
         // ==========================================
-        // FIREBASE SETUP (ADD YOUR KEYS HERE)
+        // FIREBASE SETUP
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyDdrSntMuNvDlj1qWjC7tZgdNZaKkcnc9o",
@@ -307,6 +335,9 @@
         let currentZ = 0, targetZ = 0;
 
         window.addEventListener('scroll', () => {
+            // Disable JS 3D scroll updates if screen is narrow (handled by CSS)
+            if (window.innerWidth <= 768) return; 
+            
             const wrapperTop = galleryWrapper.offsetTop;
             const wrapperHeight = galleryWrapper.offsetHeight;
             const scrollY = window.scrollY;
@@ -318,8 +349,10 @@
         });
 
         function animateCamera() {
-            currentZ += (targetZ - currentZ) * 0.08;
-            scene.style.transform = `translateZ(${currentZ}px)`;
+            if (window.innerWidth > 768) {
+                currentZ += (targetZ - currentZ) * 0.08;
+                scene.style.transform = `translateZ(${currentZ}px)`;
+            }
             requestAnimationFrame(animateCamera);
         }
         animateCamera();
@@ -329,39 +362,33 @@
         const portraitZoomImg = document.getElementById('portraitZoomImg');
         const ptClose = document.getElementById('ptClose');
         let isPortraitZoomed = false;
-        let initialScrollY = 0;
 
         document.querySelectorAll('.portrait img').forEach(img => {
             img.parentElement.addEventListener('click', () => {
                 portraitZoomImg.src = img.src;
                 portraitOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden'; // FIX: Locks background scrolling so the screen doesn't glitch on mobile
                 portraitZoomImg.style.transform = `rotateY(0deg) rotateX(0deg) scale(1)`;
                 isPortraitZoomed = true;
-                initialScrollY = window.scrollY;
             });
         });
 
         document.addEventListener('mousemove', (e) => {
-            if (!isPortraitZoomed) return;
+            if (!isPortraitZoomed || window.innerWidth <= 768) return;
             const x = (window.innerWidth / 2 - e.pageX) / 30;
             const y = (window.innerHeight / 2 - e.pageY) / 30;
             portraitZoomImg.style.transform = `rotateY(${x}deg) rotateX(${y}deg) scale(1.05)`;
         });
 
-        window.addEventListener('scroll', () => {
-            if (isPortraitZoomed && Math.abs(window.scrollY - initialScrollY) > 20) {
-                closePortraitZoom();
-            }
-        });
-
         function closePortraitZoom() {
             portraitOverlay.classList.remove('active');
+            document.body.style.overflow = ''; // Restores background scroll
             setTimeout(() => { isPortraitZoomed = false; }, 300);
         }
         ptClose.addEventListener('click', closePortraitZoom);
         portraitOverlay.addEventListener('click', (e) => { if (e.target === portraitOverlay) closePortraitZoom(); });
 
-        // === 4. GALLERY UPLOAD & LIGHTBOX (FIREBASE SYNCED) ===
+        // === 4. GALLERY UPLOAD & LIGHTBOX (FIREBASE) ===
         const photoUpload = document.getElementById('photoUpload');
         const userGallery = document.getElementById('userGallery');
         const galleryLightbox = document.getElementById('galleryLightbox');
@@ -369,7 +396,6 @@
         let currentGalleryIndex = 0;
         let currentGalleryImages = [];
 
-        // Upload to Firebase
         photoUpload.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -386,8 +412,6 @@
                     compCtx.drawImage(img, 0, 0, compCanvas.width, compCanvas.height);
                     
                     const compressedDataUrl = compCanvas.toDataURL('image/jpeg', 0.8);
-                    
-                    // Push to Firebase instead of LocalStorage
                     db.ref('photos').push({ url: compressedDataUrl });
                 }
                 img.src = event.target.result;
@@ -395,7 +419,6 @@
             reader.readAsDataURL(file);
         });
 
-        // Listen for new photos from ANY user
         db.ref('photos').on('child_added', (snapshot) => {
             const data = snapshot.val();
             displayUserPhoto(data.url);
@@ -421,6 +444,7 @@
             currentGalleryIndex = index;
             lbImg.src = currentGalleryImages[currentGalleryIndex];
             galleryLightbox.classList.add('active');
+            document.body.style.overflow = 'hidden'; // FIX: Lock scroll behind gallery
         }
 
         document.getElementById('lbPrev').addEventListener('click', (e) => {
@@ -435,10 +459,14 @@
             lbImg.src = currentGalleryImages[currentGalleryIndex];
         });
 
-        document.getElementById('lbClose').addEventListener('click', () => galleryLightbox.classList.remove('active'));
-        galleryLightbox.addEventListener('click', (e) => { if (e.target === galleryLightbox) galleryLightbox.classList.remove('active'); });
+        function closeLightbox() {
+            galleryLightbox.classList.remove('active');
+            document.body.style.overflow = ''; // Unlock background scroll
+        }
+        document.getElementById('lbClose').addEventListener('click', closeLightbox);
+        galleryLightbox.addEventListener('click', (e) => { if (e.target === galleryLightbox) closeLightbox(); });
 
-        // === 5. GUESTBOOK MESSAGES (FIREBASE SYNCED) ===
+        // === 5. GUESTBOOK MESSAGES (FIREBASE) ===
         const submitBtn = document.getElementById('submitBtn');
         const nameInput = document.getElementById('nameInput');
         const messageInput = document.getElementById('messageInput');
@@ -449,13 +477,11 @@
             const message = messageInput.value.trim();
             if (name === '' || message === '') return alert('Please fill out both fields!');
 
-            // Push to Firebase
             db.ref('messages').push({ name: name, text: message });
             
             nameInput.value = ''; messageInput.value = '';
         });
 
-        // Listen for new messages from ANY user
         db.ref('messages').on('child_added', (snapshot) => {
             const msg = snapshot.val();
             displayMessage(msg);
